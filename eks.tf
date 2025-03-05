@@ -162,3 +162,37 @@ resource "helm_release" "ingress_nginx" {
   depends_on = [module.eks]
 }
 
+
+### Fargate
+
+resource "aws_eks_fargate_profile" "job_fargate" {
+  cluster_name           = module.eks.cluster_name
+  fargate_profile_name   = "job-fargate"
+  pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
+  subnet_ids             = module.vpc.private_subnets
+
+  selector {
+    namespace = "jobs"
+  }
+}
+
+
+resource "aws_iam_role" "fargate_pod_execution_role" {
+  name = "eks-fargate-pod-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "eks-fargate-pods.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "fargate_policy_attach" {
+  role       = aws_iam_role.fargate_pod_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+}
