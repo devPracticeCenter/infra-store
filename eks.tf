@@ -143,8 +143,6 @@ resource "aws_eks_addon" "ebs-csi" {
   }
 }
 
-
-
 # Helm을 이용한 ingress-nginx 설치 및 NLB 자동 생성
 resource "helm_release" "ingress_nginx" {
   name            = "ingress-nginx"
